@@ -121,9 +121,19 @@ def main():
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(automatic_deals, "interval", minutes=30, args=[app])
-    scheduler.start()
 
-    print("D2S Sale Bot is running...")
+    async def post_init(application):
+        scheduler.start()
+        print("Automatic deal scheduler started.")
+
+    async def post_shutdown(application):
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+
+    app.post_init = post_init
+    app.post_shutdown = post_shutdown
+
+    print("D2S Sale Bot is starting...")
     print("Automatic deal checker: every 30 minutes")
     app.run_polling()
 
