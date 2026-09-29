@@ -1,5 +1,8 @@
 """
 D2S Sale Bot - Deal Source
+
+The fetch_deals() function is intentionally kept as the integration point
+for an approved/authorized deal source.
 """
 
 from dataclasses import dataclass
@@ -24,13 +27,18 @@ SEEN_FILE = "seen_deals.json"
 
 def discount_percent(price: str, old_price: str) -> int:
     try:
-        current = float(price.replace(",", "").replace("₹", "").strip())
-        original = float(old_price.replace(",", "").replace("₹", "").strip())
+        current = float(
+            price.replace(",", "").replace("₹", "").strip()
+        )
+        original = float(
+            old_price.replace(",", "").replace("₹", "").strip()
+        )
 
         if original <= 0 or current >= original:
             return 0
 
         return round((original - current) / original * 100)
+
     except (ValueError, TypeError):
         return 0
 
@@ -62,7 +70,10 @@ def filter_deals(deals: List[Deal]) -> List[Deal]:
     return [
         deal
         for deal in deals
-        if discount_percent(deal.price, deal.old_price) >= MIN_DISCOUNT
+        if discount_percent(
+            deal.price,
+            deal.old_price
+        ) >= MIN_DISCOUNT
     ]
 
 
@@ -82,14 +93,12 @@ def remove_duplicates(deals: List[Deal]) -> List[Deal]:
 
 
 def fetch_deals() -> List[Deal]:
-    # Temporary test deal.
-    # Replace this later with an approved/authorized deal source.
-    return [
-        Deal(
-            product="D2S Test Product",
-            price="799",
-            old_price="1499",
-            link="https://www.amazon.in/",
-            image_url="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-        )
-    ]
+    """
+    Integration point for the real deal source.
+
+    Do not scrape Amazon pages or bypass Amazon access controls here.
+    When an approved/authorized API or feed is available, convert its
+    results into Deal objects and return them.
+    """
+
+    return []
