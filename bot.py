@@ -2,6 +2,8 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from deals import fetch_deals
 
 load_dotenv()
 
@@ -88,6 +90,22 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ Posting failed: {e}")
 
+
+async def automatic_deals(app):
+    """
+    Automatic deal pipeline.
+    Amazon API/deal source will be connected here later.
+    """
+    deals = fetch_deals()
+
+    if not deals:
+        print("No automatic deals available.")
+        return
+
+    for deal in deals:
+        print(f"Automatic deal found: {deal.product}")
+
+
 def main():
     if not BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN missing in .env")
@@ -98,7 +116,12 @@ def main():
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("post", post))
 
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(automatic_deals, "interval", minutes=30, args=[app])
+    scheduler.start()
+
     print("D2S Sale Bot is running...")
+    print("Automatic deal checker: every 30 minutes")
     app.run_polling()
 
 if __name__ == "__main__":
