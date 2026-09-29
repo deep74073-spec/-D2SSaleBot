@@ -98,6 +98,8 @@ async def automatic_deals(app):
     """
     deals = fetch_deals()
     deals = filter_deals(deals)
+    from deals import remove_duplicates
+    deals = remove_duplicates(deals)
 
     if not deals:
         print("No qualifying automatic deals available.")

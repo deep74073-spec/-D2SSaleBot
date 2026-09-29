@@ -3,7 +3,10 @@ D2S Sale Bot - Deal Source
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List
+import hashlib
+import json
 
 
 @dataclass
@@ -16,6 +19,42 @@ class Deal:
 
 
 MIN_DISCOUNT = 20
+SEEN_FILE = "seen_deals.json"
+
+
+def deal_key(deal: Deal) -> str:
+    raw = f"{deal.product}|{deal.link}".encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
+def load_seen() -> set:
+    path = Path(SEEN_FILE)
+    if not path.exists():
+        return set()
+
+    try:
+        return set(json.loads(path.read_text()))
+    except (json.JSONDecodeError, OSError):
+        return set()
+
+
+def save_seen(seen: set) -> None:
+    Path(SEEN_FILE).write_text(json.dumps(sorted(seen), indent=2))
+
+
+def remove_duplicates(deals: List[Deal]) -> List[Deal]:
+    seen = load_seen()
+    fresh = []
+
+    for deal in deals:
+        key = deal_key(deal)
+        if key not in seen:
+            fresh.append(deal)
+            seen.add(key)
+
+    save_seen(seen)
+    return fresh
+
 
 
 def discount_percent(price: str, old_price: str) -> int:
