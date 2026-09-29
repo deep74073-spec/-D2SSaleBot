@@ -1,8 +1,5 @@
 """
 D2S Sale Bot - Deal Source
-
-This module will provide deals to the Telegram bot.
-Amazon Creators API can be connected here once API access is approved.
 """
 
 from dataclasses import dataclass
@@ -18,11 +15,29 @@ class Deal:
     image_url: str
 
 
-def fetch_deals() -> List[Deal]:
-    """
-    Return available deals.
+MIN_DISCOUNT = 20
 
-    Currently returns an empty list because the Amazon
-    Creators API is not yet available for this account.
-    """
+
+def discount_percent(price: str, old_price: str) -> int:
+    try:
+        current = float(price.replace(",", "").replace("₹", "").strip())
+        original = float(old_price.replace(",", "").replace("₹", "").strip())
+
+        if original <= 0 or current >= original:
+            return 0
+
+        return round((original - current) / original * 100)
+    except (ValueError, TypeError):
+        return 0
+
+
+def filter_deals(deals: List[Deal]) -> List[Deal]:
+    return [
+        deal for deal in deals
+        if discount_percent(deal.price, deal.old_price) >= MIN_DISCOUNT
+    ]
+
+
+def fetch_deals() -> List[Deal]:
+    # Official/approved deal source will be connected here.
     return []

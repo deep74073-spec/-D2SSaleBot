@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from deals import fetch_deals
+from deals import fetch_deals, filter_deals
 
 load_dotenv()
 
@@ -97,9 +97,10 @@ async def automatic_deals(app):
     Amazon API/deal source will be connected here later.
     """
     deals = fetch_deals()
+    deals = filter_deals(deals)
 
     if not deals:
-        print("No automatic deals available.")
+        print("No qualifying automatic deals available.")
         return
 
     for deal in deals:
