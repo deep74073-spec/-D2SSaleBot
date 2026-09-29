@@ -92,22 +92,42 @@ async def post(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def automatic_deals(app):
-    """
-    Automatic deal pipeline.
-    Amazon API/deal source will be connected here later.
-    """
     deals = fetch_deals()
     deals = filter_deals(deals)
+
     from deals import remove_duplicates
     deals = remove_duplicates(deals)
 
     if not deals:
-        print("No qualifying automatic deals available.")
+        print("No new qualifying automatic deals available.")
         return
 
     for deal in deals:
-        print(f"Automatic deal found: {deal.product}")
+        print(f"Automatic deal ready: {deal.product}")
 
+        message = (
+            "🔥 D2S SALE — DEAL ALERT 🔥\\n\\n"
+            f"🛍️ {deal.product}\\n\\n"
+            f"💰 Deal Price: ₹{deal.price}\\n"
+            f"🏷️ Old Price: ₹{deal.old_price}\\n\\n"
+            "🛒 Tap below to view the deal 👇\\n\\n"
+            "⚠️ Price & availability may change."
+        )
+
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🛒 VIEW DEAL", url=deal.link)]
+        ])
+
+        try:
+            await app.bot.send_photo(
+                chat_id=CHANNEL_USERNAME,
+                photo=deal.image_url,
+                caption=message,
+                reply_markup=keyboard
+            )
+            print(f"Automatic deal posted: {deal.product}")
+        except Exception as e:
+            print(f"Automatic posting failed for {deal.product}: {e}")
 
 def main():
     if not BOT_TOKEN:
